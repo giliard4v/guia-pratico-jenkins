@@ -1,36 +1,30 @@
 pipeline {
   agent any
 
-  environment {
-    DOCKER_IMAGE = "giliardvieira/labjenkins:${env.BUILD_ID}"
-  }
-
   stages {
-    stage('Build Docker Image') {
-      steps {
-        script {
-          dockerapp = docker.build("${DOCKER_IMAGE}", '-f ./src/Dockerfile ./src')
+      stage('Build Docker Image') {
+          steps {
+              script {
+                def dockerapp = docker.build("giliardvieira/labjenkins:${env.BUILD_ID}")
+                dockerapp.push()
+                dockerapp.push("${env.BUILD_ID}")
+              }
         }
-      }
-    }
-
-    stage('Push Docker Image') {
-      steps {
-        script {
-          docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-            dockerapp.push('latest')
-            dockerapp.push("${env.BUILD_ID}")
-          }
+}
+      stage('Push Docker Image') {
+          steps {
+              script {
+                docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                dockerapp.push('latest')
+                dockerapp.push("${env.BUILD_ID}")
+                }
+            }
         }
-      }
-    }
-
-    stage('Deploy no Kubernetes') {
-      steps {
-        sh 'echo "Executando o comando kubectl apply"'
-        // Aqui você pode colocar o comando real, como:
-        // sh 'kubectl apply -f k8s/deployment.yaml'
-      }
-    }
-  }
+}
+      stage('Deploy no Kubernetes') {
+          steps {
+              sh 'echo "Executando o comando kebectl apply"'
+                }
+}
+}
 }
